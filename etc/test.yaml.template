@@ -1,0 +1,67 @@
+Name: thirdparty
+Mode: dev
+Host: 0.0.0.0
+Port: 7100
+ExecCmd: /data/simplest_script/simplest_script
+Mysql:
+  TestMain: "root:root@tcp(127.0.0.1:3306)/test_main?charset=utf8mb4&parseTime=True&loc=Local"
+  TestConsole: "root:root@tcp(127.0.0.1:3306)/test_console?charset=utf8mb4&parseTime=True&loc=Local"
+
+Redis:
+  Default:
+    Addr: "127.0.0.1:6379"
+    Pass: ""
+    Db: 14
+  Data:
+    Addr: "127.0.0.1:6379"
+    Pass: ""
+    Db: 15
+
+Logger:
+  Path: "./logs"
+  MaxSize: 20
+  MaxBackups: 10
+  MaxAge: 7
+  Compress: true
+
+Elastic:
+  Addr: "http://127.0.0.1:9200"
+  Sniff: false
+  HealthcheckInterval: 10
+
+Auth:
+  AccessSecret: "5259d4fdada327e7e9c65aade1c831b2"
+  AccessExpire: 86400
+
+Tencent:
+  SecretId: "AKIDHNGz2KRKyRghU2N2UAnHau480lLn9OXYMx"
+  SecretKey: "c3NWXSTQH2wIPJ3kFdpoZ8WgbO0OG0gGg"
+  Oss:
+    DataBucket:
+      Name: "test-1305655563"
+      Region: "ap-guangzhou"
+  Map:
+    Domain: "http://apis.map.qq.com"
+    Key:
+
+RabbitMQ:
+  Addr: "amqp://admin:KsiSwih2evsk5fXtG@159.75.113.65:5672/zsyg"
+  Durable: true
+  AutoDelete: false
+
+ThirdService:
+  IpAddress:
+    IsLocal: true
+    Url: "http://127.0.0.1:7002/1.0/ip/address"
+
+Crypto:
+  AesKey: "e0ba366513f48f44eef0f402"
+
+Robot:
+  WechatUrl: "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key="
+
+Kafka:
+  Brokers: "127.0.0.1:9092"
+  MaxIdle: 5
+
+ExportPath: "/data/chuangliang_storage/cpa_export"

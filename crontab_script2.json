@@ -1,0 +1,50 @@
+[
+    {
+        "cron": "0 15 */2 * * *",
+        "name": "广点通媒体数据拉取（时段）",
+        "exec_cmd": "media_gdt_account_hour",
+        "params": "{}",
+        "status": 4,
+        "is_log": 1
+    },
+    {
+        "cron": "15 0 12 * * *",
+        "name": "头条媒体数据汇总（天）",
+        "exec_cmd": "media_tt_account_day",
+        "params": "{}",
+        "status": 4,
+        "is_log": 1
+    },
+    {
+        "cron": "30 0 12 * * *",
+        "name": "快手媒体数据汇总（天）",
+        "exec_cmd": "media_kuaishou_account_day",
+        "params": "{}",
+        "status": 4,
+        "is_log": 1
+    },
+    {
+        "cron": "45 0 12 * * *",
+        "name": "广点通媒体数据汇总（天）",
+        "exec_cmd": "media_gdt_account_day",
+        "params": "{}",
+        "status": 4,
+        "is_log": 1
+    },
+    {
+        "cron": "12 */30 * * * *",
+        "name": "淘宝闪购回传数据汇总（30分钟执行一次）",
+        "exec_cmd": "wash_tb_report_summary",
+        "params": "{}",
+        "status": 4,
+        "is_log": 1
+    },
+    {
+        "cron": "10 */10 * * * *",
+        "name": "核心业务预警",
+        "exec_cmd": "media_data_warning",
+        "params": "{}",
+        "status": 4,
+        "is_log": 0
+    }
+]
