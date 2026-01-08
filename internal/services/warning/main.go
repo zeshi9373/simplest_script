@@ -82,7 +82,7 @@ func (w *Warning) Add(ty string, data ...string) {
 						continue
 					}
 
-					logger.NewLogger("cpaWarningLog").Info("[" + ty + "]" + vv)
+					logger.NewLogger("WarningLog").Info("[" + ty + "]" + vv)
 
 					if l > 0 {
 						if len(vv) > 200 {
