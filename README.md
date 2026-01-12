@@ -1,3 +1,15 @@
+# 项目介绍
+simplest_script是一个集成定时任务、异步队列消费及延时队列消费于一体的分布式脚本go项目，集成了一些简易的基础工具，可以快速上手集成到商业项目中
+
+# 设计思想及目的
+目前市面上没有一个go项目集成异步队列消费、定时任务及延迟队列消费于一体的分布式脚本项目，此项目就是解决这种需求目的
+
+定时任务设计思想：定时向系统发送一个后台运营的脚本，记录这个脚本运行的记录（crontab_log）数据表内，这种设计即使代码更新发版都不影响正在执行中的任务
+
+异步队列消费设计思想：项目目前支持kafka及redis list队列异步消费，可以配置初始消费者数量（progress），最大消费者数量（max_progress），会有一个定时器（每3分钟）去检查消息堆积的数量，根据配置的消息堆积的阈值（progress_lag_limit）及每个消费者平均处理的消息数（progress_avg_msgcount）去增加消费者数量，但是不会超过设置的最大消费者数量
+
+延时队列设计思想：每次创建一个延时队列处理任务都会记录在delay_queue_log表中，每分钟有一个定时任务去捞取未来60秒需要执行的数据，并行开协程去处理（协程中会有延时处理，根据执行时间exec_time判断延迟多久）
+
 # 正式环境需要设置
 
 ```
@@ -103,4 +115,9 @@ type DelayQueuePushParams struct {
 	DelayTime int64  `json:"delay_time"` // 延迟秒数
 	ExecTime  int    `json:"exec_time"`  // 执行时间，有设置就忽略DelayTime
 }
+```
+
+### 日志记录
+```
+logger.NewLogger("testLog").Info("test log")  // testLog是项目logs目录下的子目录，由于日志写入是异步每秒钟刷入硬盘，如果程序执行时间短，建议执行末尾加上一个time.Sleep()
 ```
