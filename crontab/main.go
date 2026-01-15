@@ -11,6 +11,7 @@ import (
 	"simplest_script/core/conf"
 	"simplest_script/core/tool"
 	"simplest_script/internal/model/console"
+	"syscall"
 	"time"
 
 	"github.com/cloudwego/hertz/pkg/common/hlog"
@@ -95,6 +96,23 @@ func execHandler(name string, execCmd string, params string, isLog int) {
 		cmd.Args = append(cmd.Args, args...)
 	} else {
 		cmd = exec.Command("nohup", conf.Conf.ExecCmd, uk, execCmd, params)
+	}
+
+	// 重定向输出到文件或 /dev/null
+	outFile, err := os.OpenFile(conf.Conf.Logger.Path+"/crontab/"+execCmd+"/app-"+time.Now().Format("20060102")+".log",
+		os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	if err != nil {
+		return
+	}
+	defer outFile.Close()
+
+	cmd.Stdout = outFile
+	cmd.Stderr = outFile
+	cmd.Stdin = nil
+
+	// 设置进程属性
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		Setsid: true, // 创建新的会话
 	}
 
 	if err := cmd.Start(); err != nil {
