@@ -99,7 +99,7 @@ func execHandler(name string, execCmd string, params string, isLog int) {
 	}
 
 	// 重定向输出到文件或 /dev/null
-	outFile, err := os.OpenFile(conf.Conf.Logger.Path+"/crontab/"+execCmd+"/app-"+time.Now().Format("20060102")+".log",
+	outFile, err := os.OpenFile(conf.Conf.Logger.Path+"crontab/"+execCmd+"/app-"+time.Now().Format("20060102")+".log",
 		os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
 		return
