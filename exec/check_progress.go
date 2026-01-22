@@ -19,7 +19,7 @@ func CheckKafkaProgress() {
 	}
 
 	saramaCfg := sarama.NewConfig()
-	saramaCfg.ClientID = "cpa-" + os.Getenv("SCRIPT_PARTITION")
+	saramaCfg.ClientID = "go-" + os.Getenv("SCRIPT_PARTITION")
 	saramaCfg.Version = sarama.V2_8_0_0
 	saramaCfg.Consumer.Return.Errors = false
 

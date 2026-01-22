@@ -64,4 +64,4 @@ Kafka:
   Brokers: "127.0.0.1:9092"
   MaxIdle: 5
 
-ExportPath: "/data/simplest_script/cpa_export"
+ExportPath: "/data/simplest_script/go_export"
