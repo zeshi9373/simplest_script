@@ -1,0 +1,13 @@
+[
+    {
+        "name": "异步消费测试",  
+        "exec_cmd": "exec_test", 
+        "topic": "exec_test_topic", 
+        "group_id": "execTest",
+        "progress": 2, 
+        "max_progress": 10, 
+        "progress_lag_limit": 20000,  
+        "progress_avg_msgcount": 10000,
+        "status": 4  
+    }
+]

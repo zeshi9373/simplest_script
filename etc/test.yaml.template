@@ -1,0 +1,67 @@
+Name: simplest_script
+Mode: dev
+Host: 0.0.0.0
+Port: 7100
+ExecCmd: /data/simplest_script/simplest_script
+Mysql:
+  TestMain: "root:root@tcp(127.0.0.1:3306)/test_main?charset=utf8mb4&parseTime=True&loc=Local"
+  TestConsole: "root:root@tcp(127.0.0.1:3306)/test_console?charset=utf8mb4&parseTime=True&loc=Local"
+
+Redis:
+  Default:
+    Addr: "127.0.0.1:6379"
+    Pass: ""
+    Db: 14
+  Data:
+    Addr: "127.0.0.1:6379"
+    Pass: ""
+    Db: 15
+
+Logger:
+  Path: "./logs"
+  MaxSize: 20
+  MaxBackups: 10
+  MaxAge: 7
+  Compress: true
+
+Elastic:
+  Addr: "http://127.0.0.1:9200"
+  Sniff: false
+  HealthcheckInterval: 10
+
+Auth:
+  AccessSecret: ""
+  AccessExpire: 86400
+
+Tencent:
+  SecretId: ""
+  SecretKey: ""
+  Oss:
+    DataBucket:
+      Name: ""
+      Region: ""
+  Map:
+    Domain: "http://apis.map.qq.com"
+    Key:
+
+RabbitMQ:
+  Addr: "amqp://admin:123456@127.0.0.1:5672/test"
+  Durable: true
+  AutoDelete: false
+
+ThirdService:
+  IpAddress:
+    IsLocal: true
+    Url: "http://127.0.0.1:7002/1.0/ip/address"
+
+Crypto:
+  AesKey: "e0ba366513f48f44eef0f402"
+
+Robot:
+  WechatUrl: "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key="
+
+Kafka:
+  Brokers: "127.0.0.1:9092"
+  MaxIdle: 5
+
+ExportPath: "/data/simplest_script/cpa_export"

@@ -1,0 +1,13 @@
+{
+    "module_name":"simplest_script",
+    "output_dir":"./internal/model",
+    "db_list":[
+        {
+            "pkg":"console",
+            "link":"root:123456@tcp(127.0.0.1:3306)/test_console?charset=utf8mb4&parseTime=True&loc=Local",
+            "db_name":"test_console",
+            "table":[],
+            "const":"DBConsole"
+        }
+    ]
+}
