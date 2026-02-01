@@ -6,6 +6,8 @@ import (
 	"simplest_script/core/svc"
 	"simplest_script/core/svc/kafkaclient"
 	"time"
+
+	"github.com/cloudwego/hertz/pkg/common/hlog"
 )
 
 func RedisListConsumer(ctx context.Context, key string, handler kafkaclient.SyncConsumer) {
@@ -28,6 +30,11 @@ func RedisListConsumer(ctx context.Context, key string, handler kafkaclient.Sync
 		case <-ctx.Done():
 			return
 		default:
+		}
+
+		if svc.KillSignal {
+			hlog.Info("程序退出，redis list退出， key: " + key)
+			return
 		}
 
 		time.Sleep(200 * time.Millisecond)

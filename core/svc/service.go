@@ -15,6 +15,7 @@ import (
 var lock sync.Mutex
 var db = make(map[string]*gorm.DB)
 var rds = make(map[string]*redis.Client)
+var KillSignal bool
 
 func NewDb(adapter string) *gorm.DB {
 	lock.Lock()

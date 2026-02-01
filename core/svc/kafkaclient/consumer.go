@@ -3,6 +3,7 @@ package kafkaclient
 import (
 	"context"
 	"simplest_script/core/conf"
+	"simplest_script/core/svc"
 	"strings"
 	"time"
 
@@ -41,6 +42,18 @@ func ConsumerHandlerMessage(ctx context.Context, topic string, groupId string, h
 
 		if status {
 			reader.CommitMessages(ctx, m)
+		}
+
+		select {
+		case <-ctx.Done():
+			hlog.Info("上下文取消，kafka退出， topic: " + topic + " groupId: " + groupId)
+			return
+		default:
+		}
+
+		if svc.KillSignal {
+			hlog.Info("程序退出，kafka退出， topic: " + topic + " groupId: " + groupId)
+			return
 		}
 	}
 }

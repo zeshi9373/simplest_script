@@ -54,6 +54,7 @@ go build .
 	~~/services 业务逻辑
 	~~/types 结构体
 	/logs 日志目录
+    /resident 常驻进程任务 不需要外部信息或者触发器
 	/test 测试目录
 ```
 ## 各类用法说明

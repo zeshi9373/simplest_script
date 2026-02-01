@@ -7,12 +7,16 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/signal"
 	"path"
 	"simplest_script/core"
 	"simplest_script/core/conf"
+	"simplest_script/core/svc"
 	"simplest_script/crontab"
 	"simplest_script/exec"
 	"simplest_script/internal/script"
+	"simplest_script/resident"
+	"syscall"
 	"time"
 
 	"github.com/cloudwego/hertz/pkg/common/hlog"
@@ -73,11 +77,30 @@ func main() {
 	hlog.SetLogger(logger)
 
 	if *mode == "queue" {
+		// 创建信号通道
+		sigChan := make(chan os.Signal, 1)
+		signal.Notify(sigChan, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
+
+		// 在goroutine中监听信号
+		go func() {
+			sig := <-sigChan
+			if sig == syscall.SIGTERM || sig == syscall.SIGINT || sig == syscall.SIGQUIT {
+				svc.KillSignal = true
+			}
+
+			// 等待8s后强制退出
+			time.Sleep(8 * time.Second)
+			hlog.Errorf("优雅关闭超时，强制退出")
+			os.Exit(1)
+		}()
 		// 注册定时任务
 		InitCrontab()
 
 		// 注册异步消费
 		exec.Init()
+
+		// 注册常驻任务
+		resident.Process()
 
 		select {}
 	} else {
