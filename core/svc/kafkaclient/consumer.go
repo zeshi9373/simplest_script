@@ -34,7 +34,11 @@ func ConsumerHandlerMessage(ctx context.Context, topic string, groupId string, h
 
 		if err != nil {
 			hlog.Error("Kafka消费出错 topic: " + topic + " groupId: " + groupId + " error: " + err.Error())
-			continue
+			time.Sleep(time.Second) // 休眠1秒
+			go func() {
+				ConsumerHandlerMessage(context.Background(), topic, groupId, handler)
+			}()
+			return
 		}
 
 		var status bool
