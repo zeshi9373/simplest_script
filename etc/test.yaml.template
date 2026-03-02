@@ -61,7 +61,8 @@ Robot:
   WechatUrl: "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key="
 
 Kafka:
-  Brokers: "127.0.0.1:9092"
-  MaxIdle: 5
+  Default:
+    Brokers: "127.0.0.1:9092"
+    MaxIdle: 5
 
 ExportPath: "/data/simplest_script/go_export"

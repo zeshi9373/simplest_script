@@ -31,4 +31,6 @@ const (
 	ExpireTimeHour3    = 3 * 60 * 60 * time.Second
 	ExpireTimeDay      = 24 * 60 * 60 * time.Second
 	ExpireTimeDay3     = 3 * 24 * 60 * 60 * time.Second
+
+	MachineScript1 = "script1"
 )

@@ -15,9 +15,24 @@ type SyncConsumer interface {
 	Consume(msg string, status *bool)
 }
 
-func GetConsumerClient(topic string, groupId string) *kafka.Reader {
+type Consumer struct {
+	Flag    string `json:"flag"`
+	Brokers string `json:"brokers"`
+}
+
+func NewConsumer(flag string) *Consumer {
+	switch flag {
+	default:
+		return &Consumer{
+			Flag:    flag,
+			Brokers: conf.Conf.Kafka.Default.Brokers,
+		}
+	}
+}
+
+func (l *Consumer) GetConsumerClient(topic string, groupId string) *kafka.Reader {
 	return kafka.NewReader(kafka.ReaderConfig{
-		Brokers:        strings.Split(conf.Conf.Kafka.Brokers, ","),
+		Brokers:        strings.Split(l.Brokers, ","),
 		Topic:          topic,
 		GroupID:        groupId,
 		MaxBytes:       10e6, // 10MB
@@ -25,8 +40,8 @@ func GetConsumerClient(topic string, groupId string) *kafka.Reader {
 	})
 }
 
-func ConsumerHandlerMessage(ctx context.Context, topic string, groupId string, handler SyncConsumer) {
-	reader := GetConsumerClient(topic, groupId)
+func (l *Consumer) ConsumerHandlerMessage(ctx context.Context, topic string, groupId string, handler SyncConsumer) {
+	reader := l.GetConsumerClient(topic, groupId)
 	defer reader.Close()
 
 	for {
@@ -36,7 +51,7 @@ func ConsumerHandlerMessage(ctx context.Context, topic string, groupId string, h
 			hlog.Error("Kafka消费出错 topic: " + topic + " groupId: " + groupId + " error: " + err.Error())
 			time.Sleep(time.Second) // 休眠1秒
 			go func() {
-				ConsumerHandlerMessage(context.Background(), topic, groupId, handler)
+				NewConsumer(l.Flag).ConsumerHandlerMessage(context.Background(), topic, groupId, handler)
 			}()
 			return
 		}

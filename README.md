@@ -59,7 +59,7 @@ go build .
 ```
 ## 各类用法说明
 
-####异步消费者配置 queue_script1.json  
+####异步消费者配置 queue_script1.json  // 已更新为sql配置 type=1
 ```
 [
     {
@@ -86,7 +86,7 @@ go build .
 ]
 ```
 
-### 定时脚本配置 crontab_script1.json
+### 定时脚本配置 crontab_script1.json // 已更新为sql配置 type=2
 ```
 [
     {

@@ -90,6 +90,10 @@ type RobotConfig struct {
 }
 
 type Kafka struct {
+	Default KafkaConfig `yaml:"Default"`
+}
+
+type KafkaConfig struct {
 	Brokers string `yaml:"Brokers"`
 	MaxIdle int    `yaml:"MaxIdle"`
 }

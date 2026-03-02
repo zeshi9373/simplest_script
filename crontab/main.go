@@ -36,16 +36,8 @@ func Init() {
 	c := cron.New()
 
 	paritition := os.Getenv("SCRIPT_PARTITION")
-	byteStream, err := os.ReadFile("./crontab_" + paritition + ".json")
-
-	if err != nil {
-		panic("read config file error")
-	}
-
-	crontabs := make([]CrontabExec, 0)
-	if err := json.Unmarshal(byteStream, &crontabs); err != nil {
-		panic("unmarshal config file error")
-	}
+	crontabs := make([]console.ScriptConfig, 0)
+	console.NewScriptConfigModel().Where("type = 2 and machine = ? and status = 1", paritition).Find(&crontabs)
 
 	if len(crontabs) > 0 {
 		go ZombieReaper()

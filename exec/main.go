@@ -2,13 +2,13 @@ package exec
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"math"
 	"os"
 	"simplest_script/core"
 	"simplest_script/core/svc/kafkaclient"
 	"simplest_script/core/svc/redislist"
+	"simplest_script/internal/model/console"
 	"sync"
 	"time"
 )
@@ -24,6 +24,7 @@ type Paritition struct {
 }
 
 type ScriptConfig struct {
+	Flag                string `json:"flag"`
 	Name                string `json:"name"`
 	ExecCmd             string `json:"exec_cmd"`
 	Key                 string `json:"key"`
@@ -38,22 +39,38 @@ type ScriptConfig struct {
 
 func Init() {
 	paritition := os.Getenv("SCRIPT_PARTITION")
-	byteStream, err := os.ReadFile("./queue_" + paritition + ".json")
-
-	if err != nil {
-		panic("read config file error" + paritition)
-	}
-
-	scripts := make([]ScriptConfig, 0)
-	if err := json.Unmarshal(byteStream, &scripts); err != nil {
-		panic("unmarshal config file error")
-	}
+	scripts := make([]console.ScriptConfig, 0)
+	console.NewScriptConfigModel().Where("type = 1 and machine = ? and status = 1", paritition).Find(&scripts)
 
 	for _, v := range scripts {
 		if len(v.Topic) > 0 {
-			Scripts[v.Topic] = v
+			Scripts[v.Topic] = ScriptConfig{
+				Flag:                v.Flag,
+				Name:                v.Name,
+				ExecCmd:             v.ExecCmd,
+				Key:                 v.Key,
+				Topic:               v.Topic,
+				Progress:            v.Progress,
+				GroupId:             v.GroupId,
+				MaxProgress:         v.MaxProgress,
+				ProgressLagLimit:    v.ProgressLagLimit,
+				ProgressAvgMsgcount: v.ProgressAvgMsgcount,
+				Status:              v.Status,
+			}
 		} else {
-			Scripts[v.Key] = v
+			Scripts[v.Key] = ScriptConfig{
+				Flag:                v.Flag,
+				Name:                v.Name,
+				ExecCmd:             v.ExecCmd,
+				Key:                 v.Key,
+				Topic:               v.Topic,
+				Progress:            v.Progress,
+				GroupId:             v.GroupId,
+				MaxProgress:         v.MaxProgress,
+				ProgressLagLimit:    v.ProgressLagLimit,
+				ProgressAvgMsgcount: v.ProgressAvgMsgcount,
+				Status:              v.Status,
+			}
 		}
 	}
 
@@ -71,7 +88,7 @@ func Init() {
 				if len(v.Topic) > 0 {
 					for i := 0; i < v.Progress; i++ {
 						go func() {
-							kafkaclient.ConsumerHandlerMessage(context.Background(), v.Topic, v.GroupId, Entry[v.ExecCmd])
+							kafkaclient.NewConsumer(v.Flag).ConsumerHandlerMessage(context.Background(), v.Topic, v.GroupId, Entry[v.ExecCmd])
 						}()
 					}
 				} else if len(v.Key) > 0 {
@@ -89,11 +106,15 @@ func Init() {
 	go progressCronCheck()
 }
 
-func ProgressAdd(topic string, msgCount int64) {
+func ProgressAdd(flag, topic string, msgCount int64) {
 	defer mx.Unlock()
 	mx.Lock()
 
 	if _, ok := Scripts[topic]; !ok {
+		return
+	}
+
+	if Scripts[topic].MaxProgress == Scripts[topic].Progress {
 		return
 	}
 
@@ -118,7 +139,7 @@ func ProgressAdd(topic string, msgCount int64) {
 					TopicNumAdd(topic)
 
 					if len(Scripts[topic].Topic) > 0 {
-						kafkaclient.ConsumerHandlerMessage(ctx, Scripts[topic].Topic, Scripts[topic].GroupId, Entry[Scripts[topic].ExecCmd])
+						kafkaclient.NewConsumer(flag).ConsumerHandlerMessage(ctx, Scripts[topic].Topic, Scripts[topic].GroupId, Entry[Scripts[topic].ExecCmd])
 					} else {
 						redislist.RedisListConsumer(ctx, Scripts[topic].Key, Entry[Scripts[topic].ExecCmd])
 					}
@@ -144,6 +165,7 @@ func TopicNumDone(topic string) {
 
 func progressCronCheck() {
 	ticker := time.NewTicker(3 * time.Minute)
+	defer kafkaClientClose()
 	defer ticker.Stop()
 
 	for range ticker.C {
