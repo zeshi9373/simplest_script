@@ -15,7 +15,9 @@ func RedisListConsumer(ctx context.Context, key string, handler kafkaclient.Sync
 		msg, err := svc.NewRedis(core.RDSDefault).BRPop(5*time.Second, key).Result()
 
 		if err != nil || len(msg) < 2 {
-			// hlog.Error("RedisListConsumer error: "+err.Error(), " key: "+key+" msg: "+strings.Join(msg, ","))
+			if err != nil {
+				hlog.Errorf("RedisListConsumer error: %v, key: %s", err, key)
+			}
 			continue
 		}
 
@@ -23,7 +25,7 @@ func RedisListConsumer(ctx context.Context, key string, handler kafkaclient.Sync
 		handler.Consume(msg[1], &status)
 
 		if !status {
-			svc.NewRedis(core.RDSDefault).LPush(key, msg)
+			svc.NewRedis(core.RDSDefault).LPush(key, msg[1])
 		}
 
 		select {
@@ -36,7 +38,5 @@ func RedisListConsumer(ctx context.Context, key string, handler kafkaclient.Sync
 			hlog.Info("程序退出，redis list退出， key: " + key)
 			return
 		}
-
-		time.Sleep(200 * time.Millisecond)
 	}
 }

@@ -1,6 +1,7 @@
 package svc
 
 import (
+	"os"
 	"simplest_script/core"
 	"simplest_script/core/conf"
 	"sync"
@@ -29,12 +30,12 @@ conn:
 	if g, ok = db[adapter]; !ok {
 		retry--
 		switch adapter {
-		case core.DBMain:
-			dbLink = conf.Conf.Mysql.TestMain
+		case core.DBBusiness:
+			dbLink = conf.Conf.Mysql.Business
 		case core.DBConsole:
-			dbLink = conf.Conf.Mysql.TestConsole
+			dbLink = conf.Conf.Mysql.Console
 		default:
-			dbLink = conf.Conf.Mysql.TestMain
+			dbLink = conf.Conf.Mysql.Business
 		}
 		//启动Gorm支持
 		g, err = gorm.Open(mysql.Open(dbLink), &gorm.Config{
@@ -50,7 +51,10 @@ conn:
 
 		db[adapter] = g
 	}
-	//g = g.Debug()
+	env := os.Getenv("SCRIPT_ENV")
+	if env != core.EnvRelease {
+		g = g.Debug()
+	}
 	gdb, _ := g.DB()
 
 	if gdb.Ping() != nil && retry > 0 {

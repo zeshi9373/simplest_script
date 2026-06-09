@@ -11,13 +11,12 @@ var Conf *Config
 
 func MustLoad(filepath string, v *Config) {
 	byteStream, err := os.ReadFile(filepath)
-
 	if err != nil {
-		hlog.Info("read config file error")
+		hlog.Fatalf("read config file error: %v", err)
 	}
 
 	if err := yaml.Unmarshal(byteStream, v); err != nil {
-		hlog.Info("unmarshal config file error")
+		hlog.Fatalf("unmarshal config file error: %v", err)
 	}
 
 	Conf = v

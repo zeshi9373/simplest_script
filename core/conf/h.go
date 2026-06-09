@@ -11,8 +11,8 @@ type Config struct {
 		AccessExpire int64  `yaml:"AccessExpire"`
 	} `yaml:"Auth"`
 	Mysql struct {
-		TestMain    string `yaml:"TestMain"`
-		TestConsole string `yaml:"TestConsole"`
+		Business string `yaml:"Business"`
+		Console  string `yaml:"Console"`
 	} `yaml:"Mysql"`
 	Redis struct {
 		Default *RedisConfig `yaml:"Default"`
@@ -26,6 +26,7 @@ type Config struct {
 	Robot        *RobotConfig        `yaml:"Robot"`
 	Kafka        *Kafka              `yaml:"Kafka"`
 	ExportPath   string              `yaml:"ExportPath"`
+	TransDomain  string              `yaml:"TransDomain"`
 }
 
 type RedisConfig struct {
@@ -35,10 +36,9 @@ type RedisConfig struct {
 }
 
 type ElasticConfig struct {
-	Addr                string `yaml:"Addr"`
-	Sniff               bool   `yaml:"Sniff"`
-	HealthcheckInterval int    `yaml:"HealthcheckInterval"`
-	MaxRetries          int    `yaml:"MaxRetries"`
+	Addr     string `yaml:"Addr"`
+	Username string `yaml:"Username"`
+	Password string `yaml:"Password"`
 }
 
 type LoggerConfig struct {
@@ -91,6 +91,7 @@ type RobotConfig struct {
 
 type Kafka struct {
 	Default KafkaConfig `yaml:"Default"`
+	Data    KafkaConfig `yaml:"Data"`
 }
 
 type KafkaConfig struct {

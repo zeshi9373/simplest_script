@@ -3,22 +3,21 @@ package console
 import (
 	"simplest_script/core"
 	"simplest_script/core/svc"
-	"time"
 
 	"gorm.io/gorm"
 )
 
-// DelayQueueLog _delay_queue_log表的Model
+// DelayQueueLog delay_queue_log表的Model
 type DelayQueueLog struct {
-	Id         int64     `gorm:"column:id;primary_key;AUTO_INCREMENT;NOT NULL" json:"id"`
-	Name       string    `gorm:"column:name;NOT NULL" json:"name"`                    // 名称
-	ExecCmd    string    `gorm:"column:exec_cmd;NOT NULL" json:"execCmd"`             // 执行方法
-	Params     string    `gorm:"column:params;NOT NULL" json:"params"`                // 参数
-	Status     int       `gorm:"column:status;NOT NULL;default:1" json:"status"`      // 执行状态（1待执行 2执行中 3已完成 4失败）
-	Result     string    `gorm:"column:result;NOT NULL" json:"result"`                // 执行结果
-	ExecTime   int       `gorm:"column:exec_time;NOT NULL;default:0" json:"execTime"` // 执行时间（秒）
-	CreateTime time.Time `gorm:"column:create_time" json:"createTime"`
-	UpdateTime time.Time `gorm:"column:update_time" json:"updateTime"`
+	Id         int64  `gorm:"column:id;primary_key;AUTO_INCREMENT;NOT NULL" json:"id"`
+	Name       string `gorm:"column:name;NOT NULL" json:"name"`                     // 名称
+	ExecCmd    string `gorm:"column:exec_cmd;NOT NULL" json:"exec_cmd"`             // 执行方法
+	Params     string `gorm:"column:params;NOT NULL" json:"params"`                 // 参数
+	Status     int    `gorm:"column:status;NOT NULL;default:1" json:"status"`       // 执行状态（1待执行 2执行中 3已完成 4失败）
+	Result     string `gorm:"column:result;NOT NULL" json:"result"`                 // 执行结果
+	ExecTime   int    `gorm:"column:exec_time;NOT NULL;default:0" json:"exec_time"` // 执行时间（秒）
+	CreateTime string `gorm:"column:create_time" json:"create_time"`
+	UpdateTime string `gorm:"column:update_time" json:"update_time"`
 }
 
 // 配置信息

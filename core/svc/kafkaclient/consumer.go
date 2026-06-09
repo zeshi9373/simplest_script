@@ -2,6 +2,7 @@ package kafkaclient
 
 import (
 	"context"
+	"simplest_script/core"
 	"simplest_script/core/conf"
 	"simplest_script/core/svc"
 	"strings"
@@ -22,6 +23,11 @@ type Consumer struct {
 
 func NewConsumer(flag string) *Consumer {
 	switch flag {
+	case core.FlagData:
+		return &Consumer{
+			Flag:    flag,
+			Brokers: conf.Conf.Kafka.Data.Brokers,
+		}
 	default:
 		return &Consumer{
 			Flag:    flag,

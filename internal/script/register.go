@@ -8,5 +8,4 @@ import (
 func InitEntry() {
 	HandlerEntry["export"] = &export.Export{}
 	HandlerEntry["delay_queue"] = &delayqueue.DelayQueue{}
-
 }

@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"os"
 	"simplest_script/core/conf"
+	"simplest_script/core/logger"
 	"simplest_script/core/tool"
 	"simplest_script/crontab"
 	"simplest_script/internal/model/console"
@@ -195,10 +197,25 @@ func (l *Export) Export(data console.ExportLog) {
 
 	// 保存文件
 	filePath := conf.Conf.ExportPath + "/" + data.FileName + time.Now().Format("20060102030405") + strconv.Itoa(tool.Random(10000, 99999)) + ".xlsx"
-	if err := f.SaveAs(filePath); err != nil {
+	if err = f.SaveAs(filePath); err != nil {
+		var errorMsg string
+		logger.NewLogger("export_log").Info("export error", logger.Fields{
+			"save err is:": fmt.Sprintf("保存文件失败: 错误=%v", err),
+		})
+		// 详细分析错误
+		if pathErr, ok := err.(*os.PathError); ok {
+			errorMsg = fmt.Sprintf("保存文件失败: 操作=%s, 路径=%s, 错误=%v",
+				pathErr.Op, pathErr.Path, pathErr.Err)
+		} else {
+			errorMsg = "保存文件失败: " + err.Error()
+		}
+
+		if len(errorMsg) > 255 {
+			errorMsg = errorMsg[:255]
+		}
 		console.NewExportLogModel().Where("id = ?", data.Id).Updates(map[string]any{
 			"status":      4,
-			"error_msg":   "保存文件失败",
+			"error_msg":   errorMsg,
 			"update_time": time.Now().Format("2006-01-02 15:04:05"),
 		})
 		return

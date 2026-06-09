@@ -1,6 +1,7 @@
 package kafkaclient
 
 import (
+	"simplest_script/core"
 	"simplest_script/core/conf"
 	"strings"
 	"sync"
@@ -14,7 +15,7 @@ type KafkaWriterConnection struct {
 	Writer       *kafka.Writer
 }
 
-var KafkaWriterClient = make(map[string]chan *KafkaWriterConnection, 0)
+var KafkaWriterClient = make(map[string]chan KafkaWriterConnection, 0)
 var mxWriter sync.Mutex
 
 type Producer struct {
@@ -25,15 +26,22 @@ type Producer struct {
 
 func NewProducer(flag string) *Producer {
 	switch flag {
+	case core.FlagData:
+		return &Producer{
+			Flag:    flag,
+			Brokers: conf.Conf.Kafka.Data.Brokers,
+			MaxIdle: conf.Conf.Kafka.Data.MaxIdle,
+		}
 	default:
 		return &Producer{
+			Flag:    flag,
 			Brokers: conf.Conf.Kafka.Default.Brokers,
 			MaxIdle: conf.Conf.Kafka.Default.MaxIdle,
 		}
 	}
 }
 
-func (l *Producer) GetKafkaWriterClient(flag, topic string) *kafka.Writer {
+func (l *Producer) GetKafkaWriterClient(topic string) *kafka.Writer {
 	defer mxWriter.Unlock()
 	mxWriter.Lock()
 
@@ -64,13 +72,17 @@ func (l *Producer) PutKafkaWriterClient(topic string, client *kafka.Writer) {
 	defer mxWriter.Unlock()
 	mxWriter.Lock()
 
-	if len(KafkaWriterClient[l.Flag+topic]) < l.MaxIdle {
-		KafkaWriterClient[l.Flag+topic] <- &KafkaWriterConnection{
-			Writer:       client,
-			LastUsedTime: time.Now().Unix(),
-		}
-	} else {
+	if KafkaWriterClient[l.Flag+topic] == nil {
+		KafkaWriterClient[l.Flag+topic] = make(chan KafkaWriterConnection, l.MaxIdle)
+	}
+
+	if len(KafkaWriterClient[l.Flag+topic]) >= l.MaxIdle {
 		client.Close()
+	} else {
+		KafkaWriterClient[l.Flag+topic] <- KafkaWriterConnection{
+			LastUsedTime: time.Now().Unix(),
+			Writer:       client,
+		}
 	}
 }
 

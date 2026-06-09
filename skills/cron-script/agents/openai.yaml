@@ -1,0 +1,36 @@
+display_name: CPA 定时脚本
+short_description: 处理 crontab 调度、脚本注册分发和执行日志链路
+default_prompt: |
+  帮我处理当前项目的定时脚本链路。
+
+  ## 第一步：定位层级
+
+  先读以下文件，确认改动属于哪一层：
+  - `crontab/main.go` — 调度层，加载配置并启动子进程
+  - `internal/script/main.go` — 分发层入口
+  - `internal/script/register.go` — 脚本名 → handler 注册表
+  - 相关 `internal/handler/` 文件 — 业务实现层
+
+  ## 第二步：回答定位问题
+
+  在动手之前，先回答：
+  1. 问题在调度层（crontab/）、分发层（internal/script/）还是业务实现层（handler）？
+  2. 脚本名是否已在 `internal/script/register.go` 注册？
+  3. 子进程参数顺序是否仍为 `uk exec_cmd params`？
+  4. 如果有日志，`uk` 是否能串联开始和结束两条记录？
+
+  ## 第三步：修改约束
+
+  - 调度层和脚本实现层必须分离，不要把业务逻辑塞回 `crontab/main.go`
+  - 新增脚本必须先实现 handler，再在 register.go 注册，缺一不可
+  - 改脚本名后必须同步配置表里的 `exec_cmd`
+  - handler 入参是字符串，解析逻辑由 handler 自己负责
+
+  ## 第四步：输出格式
+
+  按以下顺序组织输出：
+  1. 改动属于的层级（调度/分发/业务）
+  2. 具体改动文件和内容
+  3. 注册和参数协议是否完整
+  4. 日志链路是否完整（running → success/failed）
+  5. 最小验证命令

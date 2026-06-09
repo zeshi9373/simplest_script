@@ -61,6 +61,7 @@ type Fields map[string]interface{}
 // Logger 主结构
 type Logger struct {
 	config     *Config
+	customDir  string // 自定义日志目录
 	file       *os.File
 	writer     *bufio.Writer
 	mu         sync.RWMutex
@@ -72,6 +73,13 @@ type Logger struct {
 }
 
 func NewLogger(customDir string) *Logger {
+	defer loggerMx.Unlock()
+	loggerMx.Lock()
+
+	if loggerClient[customDir] != nil {
+		return loggerClient[customDir]
+	}
+
 	config := &Config{
 		LogDir:      conf.Conf.Logger.Path + "/" + customDir,
 		CustomDir:   customDir,
@@ -91,13 +99,6 @@ func NewLogger(customDir string) *Logger {
 
 // createLogger 创建新的日志记录器
 func createLogger(config *Config) *Logger {
-	defer loggerMx.Unlock()
-	loggerMx.Lock()
-
-	if loggerClient[config.CustomDir] != nil {
-		return loggerClient[config.CustomDir]
-	}
-
 	// 创建日志目录
 	if err := os.MkdirAll(config.LogDir, 0755); err != nil {
 		return nil
@@ -109,6 +110,7 @@ func createLogger(config *Config) *Logger {
 		stopCh:     make(chan struct{}),
 		fields:     make(Fields),
 		callerSkip: 3, // 默认跳过3层调用栈
+		customDir:  config.CustomDir,
 	}
 
 	// 打开日志文件
@@ -175,6 +177,8 @@ func (l *Logger) rotateIfNeeded() error {
 		return err
 	}
 
+	loggerClient[l.customDir] = nil
+
 	// 重新打开文件
 	return l.openFile()
 }
@@ -194,24 +198,23 @@ func (l *Logger) asyncWriter() {
 		}
 	}()
 
-	ticker := time.NewTicker(time.Second)
+	ticker := time.NewTicker(200 * time.Millisecond)
 	defer ticker.Stop()
+	var logCount int
 
 	for {
 		select {
 		case entry := <-l.queue:
 			l.writeEntry(entry)
-		case <-ticker.C:
-			// 清空队列
-			for {
-				select {
-				case entry := <-l.queue:
-					l.writeEntry(entry)
-				default:
-					l.writer.Flush()
-					return
-				}
+			logCount++
+
+			if logCount >= 100 {
+				logCount = 0
+				l.writer.Flush()
 			}
+		case <-ticker.C:
+			logCount = 0
+			l.writer.Flush()
 		}
 	}
 }

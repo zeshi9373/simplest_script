@@ -11,6 +11,7 @@ import (
 	"path"
 	"simplest_script/core"
 	"simplest_script/core/conf"
+	"simplest_script/core/monitor"
 	"simplest_script/core/svc"
 	"simplest_script/crontab"
 	"simplest_script/exec"
@@ -26,6 +27,7 @@ import (
 
 var configFile *string
 var c conf.Config
+var monitors *monitor.EnhancedMonitor
 
 func main() {
 	mode := flag.String("mode", "cron", "run mode: cron or queue")
@@ -33,7 +35,7 @@ func main() {
 
 	switch env {
 	case core.EnvRelease:
-		configFile = flag.String("f", "./etc/release.yaml", "the config file")
+		configFile = flag.String("f", "/data/simplest_script/etc/release.yaml", "the config file")
 	case core.EnvTest:
 		configFile = flag.String("f", "/data/etc/test.yaml", "the config file")
 	case core.EnvDev:
@@ -93,6 +95,10 @@ func main() {
 			hlog.Errorf("优雅关闭超时，强制退出")
 			os.Exit(1)
 		}()
+
+		// 启动程序监控
+		defer monitors.Stop()
+		monitors = monitor.NewEnhancedMonitor()
 		// 注册定时任务
 		InitCrontab()
 
@@ -114,5 +120,6 @@ func main() {
 			crontab.UpdateCrontabLog(uk, "success", res)
 		}
 
+		time.Sleep(2 * time.Second)
 	}
 }

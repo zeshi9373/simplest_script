@@ -1,140 +1,163 @@
-# 项目介绍
-simplest_script是一个集成定时任务、异步队列消费及延时队列消费于一体的分布式脚本go项目，集成了一些简易的基础工具，可以快速上手集成到商业项目中
+# Script 服务
 
-# 设计思想及目的
-目前市面上没有一个go项目集成异步队列消费、定时任务及延迟队列消费于一体的分布式脚本项目，此项目就是解决这种需求目的
+## 环境配置
 
-定时任务设计思想：定时向系统发送一个后台运营的脚本，记录这个脚本运行的记录（crontab_log）数据表内，这种设计即使代码更新发版都不影响正在执行中的任务
+正式环境需要设置以下环境变量：
 
-异步队列消费设计思想：项目目前支持kafka及redis list队列异步消费，可以配置初始消费者数量（progress），最大消费者数量（max_progress），会有一个定时器（每3分钟）去检查消息堆积的数量，根据配置的消息堆积的阈值（progress_lag_limit）及每个消费者平均处理的消息数（progress_avg_msgcount）去增加消费者数量，但是不会超过设置的最大消费者数量
-
-延时队列设计思想：每次创建一个延时队列处理任务都会记录在delay_queue_log表中，每分钟有一个定时任务去捞取未来60秒需要执行的数据，并行开协程去处理（协程中会有延时处理，根据执行时间exec_time判断延迟多久）
-
-# 环境需要设置
-
-```
-export SCRIPT_ENV=release # 环境 dev test release
-export SCRIPT_PARTITION=script1 # 脚本所在分区 默认为 script1 后续机器编号 递增script2 script3 ...
+```bash
+export SCRIPT_ENV=release        # 环境：dev / test / release
+export SCRIPT_PARTITION=script1  # 脚本所在分区，默认 script1，后续机器递增 script2、script3 ...
 ```
 
-# 配置文件
+## 构建与运行
 
-```
-etc/dev.yaml  // dev
-etc/test.yaml  // test
-etc/release.yaml  // release
-```
-
-# 运行
-
-```
+```bash
 go build .
 
+# queue 模式（常驻运行，启动 crontab + exec 消费者 + resident 任务）
 ./simplest_script -mode queue
+
+# 单次脚本执行
+./simplest_script "" exec_cmd params
 ```
+
+执行命令可在日志文件 `logs/*.log` 中查看。
 
 ## 目录结构
-```
-   /core  核心非业务公用库
-    ~~/conf  解析配置文件
-	~~/logger 日志记录自定义文件夹包
-	~~/svc 服务中间件注册
-	~~/tool 工具包（非业务）
-	~~/warning 预警封装基础包
-	/crontab 定时任务注册（非业务）
-	/etc 配置文件
-	/exec 异步消费业务（包括kafka及redis队列，配置文件queue_script1.json，queue_script2.json）
-	/expand 外部业务接口
-	/internal 内部业务处理
-	~~/consts  常量配置
-	~~/delay_queue 延迟队列业务
-	~~/handler  定时任务业务
-	~~/model  数据库表
-	~~/script 定时任务方法配置
-	~~/services 业务逻辑
-	~~/types 结构体
-	/logs 日志目录
-    /resident 常驻进程任务 不需要外部信息或者触发器
-	/test 测试目录
-```
-## 各类用法说明
 
-####异步消费者配置 queue_script1.json  // 已更新为sql配置 type=1
 ```
-[
-    {
-        "name": "kafka测试",     // 名称
-        "exec_cmd": "kafka_test",   // 脚本名称  在文件夹exec文件夹内
-        "topic": "kafka_test_topic",  // topic , kafka 必填
-        "group_id": "kafkaTest", // 消费者, kafka 必填
-        "progress": 2,  // 默认协程数
-        "max_progress": 10,  // 最大协程数，kafka默认分区数
-        "progress_lag_limit": 20000,  // 消息堆积阈值
-        "progress_avg_msgcount": 10000, // 协程平均消息数，超时5分钟
-        "status": 4  // 位运算 1: dev 2: test 4: release
-    },
-    {
-        "name": "redis测试",     // 名称
-        "exec_cmd": "redis_test",   // 脚本名称  在文件夹exec内
-        "key": "redis_test",  // redis list key, redis 必填
-        "progress": 2,  // 默认协程数
-        "max_progress": 10,  // 最大协程数
-        "progress_lag_limit": 5000,  // 消息堆积阈值
-        "progress_avg_msgcount": 1000, // 协程平均消息数，超时5分钟
-        "status": 4  // 位运算 1: dev 2: test 4: release
-    }
-]
+/cmd                   命令行入口
+/core                  核心非业务公用库
+  ~/conf               解析配置文件
+  ~/logger             日志记录自定义包
+  ~/permission         数据权限
+  ~/svc                服务中间件注册
+  ~/tool               工具包（非业务）
+  ~/warning            预警封装基础包
+/crontab               定时任务调度（非业务）
+/delay_queue           延迟队列扫描执行器
+/etc                   配置文件
+/exec                  异步消费业务（Kafka 及 Redis 队列，依赖 script_config 配置表）
+  ~/promotion          推广 click / callback 消费入口
+/expand                外部业务接口
+/internal              内部业务处理
+  ~/consts             常量配置
+  ~/delay_queue        延迟队列任务处理器入口
+  ~/handler            定时任务业务实现
+  ~/main_progress      业务主流程封装（公用）
+  ~/model              数据库表模型
+  ~/script             定时任务注册与分发
+  ~/services           业务逻辑
+  ~/types              结构体定义
+/logs                  日志目录
+/resident              常驻进程任务（不需要外部触发器）
+/skills                AI 辅助开发技能包（见下方说明）
+/test                  测试目录
 ```
 
-### 定时脚本配置 crontab_script1.json // 已更新为sql配置 type=2
-```
-[
-    {
-        "cron": "0 * * * * *",     // 执行配置 秒 分钟 小时 日 月 周
-        "name": "测试定时任务",  // 名称
-        "exec_cmd": "crontab_track",  // 命令  在internal/handler文件夹内
-        "params": "{\"name\":\"测试\"}",  // 参数
-        "status": 4,  // 位运算 1: dev 2: test 4: release
-        "is_log": 0  // 是否记录日志 1: 记录 0: 不记录
-    }
-]
-```
+## 生成数据库 Model 文件
 
-脚本执行命令可以在日志文件里面查看 logs/*.log
+配置文件：`generateModel.json`
 
-
-### 生成数据库model文件配置
-```
-generateModel.json
+```json
 {
-    "module_name":"simplest_script",  // 项目模块名称
-    "output_dir":"./internal/model", // 输出目录
-    "db_list":[
+    "module_name": "simplest_script",
+    "output_dir": "./internal/model",
+    "db_list": [
         {
-            "pkg":"console", // 包名
-            "link":"root:123456@tcp(127.0.0.1:3306)/console?charset=utf8mb4&parseTime=True&loc=Local", // 连接
-            "db_name":"console", // 数据库名
-            "table":[], // 指定表名，为空表示所有表
-            "const":"DBConsole" // 连接常量
-        }
+            "pkg": "console",
+            "link": "<dsn>",
+            "db_name": "db",
+            "table": [],
+            "const": "DBConsole"
+        },
+        {
+            "pkg": "business",
+            "link": "<dsn>",
+            "db_name": "db",
+            "table": [],
+            "const": "DBBusiness"
+        },
     ]
 }
 ```
 
-### 延时队列适用方法
+运行生成工具：
+
+```bash
+./generate_model_darwin   # macOS
+./generate_model_linux    # Linux
+./generate_model.exe      # windows
 ```
-delayqueue.NewDelayQueue().Push(params)   // params []core.DelayQueuePushParams
+
+## 延迟队列用法
+
+```go
+delayqueue.NewDelayQueue().Push(params)  // params []core.DelayQueuePushParams
 
 type DelayQueuePushParams struct {
-	Name      string `json:"name"` // 名称
-	ExecCmd   string `json:"exec_cmd"` // 执行命令方法 在internal/delay_queue文件夹内
-	Params    string `json:"params"`  // 参数
-	DelayTime int64  `json:"delay_time"` // 延迟秒数
-	ExecTime  int    `json:"exec_time"`  // 执行时间，有设置就忽略DelayTime
+    Name      string `json:"name"`       // 任务名称
+    ExecCmd   string `json:"exec_cmd"`   // 处理器名称（delay_queue/main.go 中注册）
+    Params    string `json:"params"`     // 任务参数（字符串）
+    DelayTime int64  `json:"delay_time"` // 延迟秒数
+    ExecTime  int    `json:"exec_time"`  // 指定执行时间（优先级高于 DelayTime）
 }
 ```
 
-### 日志记录
-```
-logger.NewLogger("testLog").Info("test log")  // testLog是项目logs目录下的子目录，由于日志写入是异步每秒钟刷入硬盘，如果程序执行时间短，建议执行末尾加上一个time.Sleep()
-```
+`delay_queue_log` 表状态值：`1` 待执行 / `2` 执行中 / `3` 已完成 / `4` 失败
+
+---
+
+## Skills —— AI 辅助开发技能包
+
+`skills/` 目录包含针对本项目各业务模块的 AI 开发辅助规范，在 AI 编码时按需加载对应 skill，确保生成的代码符合项目约定。
+
+### cron-script — 定时脚本
+
+**适用场景：** 新增/修改/排查定时脚本，涉及 `crontab/`、`internal/script/`、`internal/handler/` 的调度、注册分发、执行日志链路。
+
+关键约定：
+- 定时任务通过 `crontab` 读取配置后启动子进程，再由 `internal/script` 分发，**不是直接调用业务函数**。
+- 新增脚本须先实现 handler，再在 `internal/script/register.go` 注册脚本名。
+- 脚本参数为字符串，handler 自行解析；返回值为 `*crontab.Result`。
+- 日志链路关键值是 `uk`，需贯穿执行前后写入。
+
+### exec-worker — 消费执行器
+
+**适用场景：** 新增/修改/排查 Kafka 或 Redis 消费任务，涉及 `exec/` 目录下的消费者实现、ExecCmd 注册、配置驱动启动、扩容逻辑。
+
+关键约定：
+- 启动依赖**脚本配置表**，只在代码里注册 ExecCmd 还不够。
+- 扩容行为由 `Progress`、`MaxProgress`、`ProgressLagLimit`、`ProgressAvgMsgcount` 等字段驱动。
+- `exec/` 只放启动、调度、扩容逻辑，业务逻辑放 `exec/<domain>/` 或 `internal/`。
+
+### delay-queue — 延迟队列
+
+**适用场景：** 新增/修改/排查延迟投递任务，涉及 `delay_queue/`、`internal/delay_queue/`、`delay_queue_log` 状态流转和入队参数协议。
+
+关键约定：
+- 入队（`Push`）与执行（`Handler`）是两层职责，不要混写。
+- `ExecCmd` 对应 `delay_queue/main.go` 的处理器注册，**不是** `internal/script/register.go` 的脚本名。
+- `ExecTime` 优先级高于 `DelayTime`。
+- `internal/delay_queue/mian.go`（拼写有误）是现有引用名，**不能随意重命名**。
+
+### business-pipeline — 业务主链路
+
+**适用场景：** 新增/修改/排查推广 click / callback 主链路，涉及 `exec/promotion/`、`internal/main_progress/`、去重、扣量、回传状态更新和批量落库。
+
+关键约定：
+- `exec/promotion/` 是消费入口，只负责接消息、限流并发、组装数据；业务逻辑下沉到各子模块。
+- 链路分段：点击消费 → 业务线解析 → 点击上报 → 媒体回传 → 扣量策略，各段职责不能混写。
+- 回传结果需同步更新 `callback_state`、`callback_msg`、`callback_time`，仅写日志不够。
+- 新增媒体回传须走 `callback_click` 分发入口，不要在入口文件硬编码。
+
+### resident-task — 常驻后台任务
+
+**适用场景：** 新增/修改/排查常驻后台任务，涉及 `resident/` 目录下的 Handler 实现、按机器分区注册、优雅退出。
+
+关键约定：
+- 常驻任务**只在 `queue` 模式下启动**。
+- `InitEntry()` 按 `SCRIPT_PARTITION` 决定哪台机器运行哪些任务，注册须在正确分区的 `case` 下。
+- `Handler()` 必须包含无限循环，并在每轮循环检查 `svc.KillSignal`。
+- 优雅退出宽限期为 **8 秒**，超时强退；退出路径需保证在 8 秒内完成。
+- 初始化逻辑（连接、预加载）放在循环之前，**不要放进 `InitEntry()`**。

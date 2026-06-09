@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math"
 	"os"
-	"simplest_script/core"
 	"simplest_script/core/svc/kafkaclient"
 	"simplest_script/core/svc/redislist"
 	"simplest_script/internal/model/console"
@@ -15,6 +14,14 @@ import (
 
 var Scripts = make(map[string]ScriptConfig, 0)
 var TopicNum = make(map[string]int, 0)
+var CheckProgressList = make(map[string][]CheckProgressItem, 0)
+
+type CheckProgressItem struct {
+	Topic       string `json:"topic"`
+	GroupId     string `json:"group_id"`
+	MaxProgress int    `json:"max_progress"`
+}
+
 var mx sync.Mutex
 
 type Paritition struct {
@@ -77,7 +84,7 @@ func Init() {
 	InitEntry()
 
 	for _, v := range scripts {
-		if core.StatusIsEnv(v.Status) {
+		if v.Status == 1 {
 			if _, ok := Entry[v.ExecCmd]; ok {
 				if len(v.Topic) == 0 && len(v.Key) == 0 {
 					continue

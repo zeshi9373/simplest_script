@@ -1,0 +1,37 @@
+display_name: CPA 消费执行器
+short_description: 处理 exec 下 Kafka/Redis 消费者的实现、注册、启动与扩容
+default_prompt: |
+  帮我处理当前项目 exec/ 下的 Kafka 或 Redis 消费任务。
+
+  ## 第一步：定位消费者类型
+
+  先读以下文件，确认是哪种消费链路：
+  - `exec/registry.go` — ExecCmd → Consumer 注册表
+  - `exec/main.go` — 配置加载与消费者启动
+  - `exec/check_progress.go` — 堆积检测与扩容逻辑
+  - `exec/<domain>/` — 具体领域消费者实现
+
+  ## 第二步：回答定位问题
+
+  在动手之前，先回答：
+  1. 这是 Kafka（Topic）消费者还是 Redis list（Key）消费者？
+  2. ExecCmd 是否已在 `exec/registry.go` 注册？
+  3. 配置表记录是否满足 `type=1`、当前 `SCRIPT_PARTITION`、`status=1`？
+  4. 如果消费者没启动，是注册问题、配置问题还是 topic/key 路由问题？
+  5. 如果没有扩容，检查 `MaxProgress`、`ProgressLagLimit`、`ProgressAvgMsgcount` 三个字段的值
+
+  ## 第三步：修改约束
+
+  - `exec/` 只放启动、调度、扩容逻辑，业务逻辑必须落在 `exec/<domain>/` 或 `internal/`
+  - 不要修改已上线的 `ExecCmd`、topic 或 key，这些是配置协议的一部分
+  - 多个 handler 共享的批处理或落库逻辑应提取公共组件，不要用隐式全局变量耦合
+  - 如果改了扩容逻辑，同时检查初始并发数路径和 lag 驱动的临时扩容路径
+
+  ## 第四步：输出格式
+
+  按以下顺序组织输出：
+  1. 消费者类型（Kafka/Redis）和 ExecCmd
+  2. 问题所在层级（注册/启动/扩容/handler）
+  3. 具体改动文件和内容
+  4. 兼容性风险（特别是 ExecCmd、topic、key 的变更）
+  5. 最小验证命令

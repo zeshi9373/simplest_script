@@ -1,11 +1,11 @@
-Name: simplest_script
+Name: script
 Mode: dev
 Host: 0.0.0.0
 Port: 7100
 ExecCmd: /data/simplest_script/simplest_script
 Mysql:
-  TestMain: "root:root@tcp(127.0.0.1:3306)/test_main?charset=utf8mb4&parseTime=True&loc=Local"
-  TestConsole: "root:root@tcp(127.0.0.1:3306)/test_console?charset=utf8mb4&parseTime=True&loc=Local"
+  Business: "root:root@tcp(127.0.0.1:3306)/business?charset=utf8mb4&parseTime=True&loc=Local"
+  Console: "root:root@tcp(127.0.0.1:3306)/console?charset=utf8mb4&parseTime=True&loc=Local"
 
 Redis:
   Default:
@@ -26,26 +26,26 @@ Logger:
 
 Elastic:
   Addr: "http://127.0.0.1:9200"
-  Sniff: false
-  HealthcheckInterval: 10
+  Username: ""
+  Password: ""
 
 Auth:
-  AccessSecret: ""
+  AccessSecret: "5259d4fdada327e7e9c65aade1c831b2"
   AccessExpire: 86400
 
 Tencent:
-  SecretId: ""
-  SecretKey: ""
+  SecretId: "21312"
+  SecretKey: "23423"
   Oss:
     DataBucket:
-      Name: ""
-      Region: ""
+      Name: "test-3242"
+      Region: "ap-guangzhou"
   Map:
     Domain: "http://apis.map.qq.com"
     Key:
 
 RabbitMQ:
-  Addr: "amqp://admin:123456@127.0.0.1:5672/test"
+  Addr: "amqp://admin:21321324@127.0.0.1:5672/test"
   Durable: true
   AutoDelete: false
 
@@ -64,5 +64,9 @@ Kafka:
   Default:
     Brokers: "127.0.0.1:9092"
     MaxIdle: 5
+  Data:
+    Brokers: "127.0.0.1:9092"
+    MaxIdle: 5
 
-ExportPath: "/data/simplest_script/go_export"
+ExportPath: "/data/export"
+TransDomain: ""

@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
-	"simplest_script/core"
 	"simplest_script/core/conf"
 	"simplest_script/core/tool"
 	"simplest_script/internal/model/console"
@@ -44,7 +43,7 @@ func Init() {
 	}
 
 	for _, v := range crontabs {
-		if core.StatusIsEnv(v.Status) {
+		if v.Status == 1 {
 			fmt.Printf("crontab script %v \n", v)
 			c.AddFunc(v.Cron, func() {
 				go execHandler(v.Name, v.ExecCmd, v.Params, v.IsLog)
@@ -67,15 +66,15 @@ func execHandler(name string, execCmd string, params string, isLog int) {
 		uk = tool.Uuid()
 		model := console.CrontabLog{
 			Name:       name,
-			CreateTime: time.Now(),
-			UpdateTime: time.Now(),
+			CreateTime: time.Now().Format(tool.DatetimeLayout),
+			UpdateTime: time.Now().Format(tool.DatetimeLayout),
 			Status:     "running",
 			Result:     "",
 			ExecCmd:    execCmd,
 			Params:     params,
 			Partition:  os.Getenv("SCRIPT_PARTITION"),
 			Uk:         uk,
-			StartTime:  int(time.Now().UnixMilli()),
+			StartTime:  int64(time.Now().UnixMilli()),
 		}
 		console.NewCrontabLogModel().Create(&model)
 	}
@@ -122,7 +121,7 @@ func UpdateCrontabLog(uk string, status string, result any) {
 			"uk":     uk,
 			"status": status,
 			"result": result,
-			"time":   time.Now().Format("2006-01-02 15:04:05"),
+			"time":   time.Now().Format(tool.DatetimeLayout),
 		}
 
 		lgs, _ := json.Marshal(lg)

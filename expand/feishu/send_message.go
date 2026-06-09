@@ -3,9 +3,9 @@ package feishu
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"os"
 	"simplest_script/core"
+	"simplest_script/core/logger"
 	"simplest_script/core/tool"
 	"time"
 )
@@ -32,7 +32,9 @@ func (l *SendMessage) Send(msgType string, msg string) error {
 	}
 
 	if os.Getenv("SCRIPT_ENV") != core.EnvRelease {
-		fmt.Println("飞书消息： ", msg)
+		logger.NewLogger("feishuMessage").Info("飞书消息", logger.Fields{
+			"msg": msg,
+		})
 		return nil
 	}
 

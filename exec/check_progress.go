@@ -18,7 +18,7 @@ var kafkaClientMx sync.Mutex
 
 // 监测kafka消费者需不需要增加消费者
 func CheckKafkaProgress() {
-	if os.Getenv("CPA_ENV") != core.EnvRelease {
+	if os.Getenv("SCRIPT_ENV") != core.EnvRelease {
 		fmt.Println("监测kafka消费者")
 	}
 
@@ -49,12 +49,14 @@ func getKafkaClient(flag string) sarama.Client {
 		return kafkaClient[flag]
 	} else {
 		saramaCfg := sarama.NewConfig()
-		saramaCfg.ClientID = "cpa-" + os.Getenv("CPA_PARTITION")
+		saramaCfg.ClientID = "" + os.Getenv("SCRIPT_PARTITION")
 		saramaCfg.Version = sarama.V2_8_0_0
 		saramaCfg.Consumer.Return.Errors = false
 
 		var brokers string
 		switch flag {
+		case core.FlagData:
+			brokers = conf.Conf.Kafka.Data.Brokers
 		default:
 			brokers = conf.Conf.Kafka.Default.Brokers
 		}

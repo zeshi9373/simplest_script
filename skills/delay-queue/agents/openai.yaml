@@ -1,0 +1,36 @@
+display_name: CPA 延迟队列
+short_description: 处理延迟任务入队、扫描执行、状态流转与处理器注册
+default_prompt: |
+  帮我处理当前项目的延迟队列链路。
+
+  ## 第一步：定位层级
+
+  先读以下文件，确认改动属于哪一层：
+  - `core/delay_queue.go` — 入队接口与参数定义
+  - `delay_queue/delay_queue.go` — 扫描执行器
+  - `delay_queue/main.go` — 处理器注册表（ExecCmd → Handler）
+  - `internal/delay_queue/mian.go` — 脚本分发入口（注意：文件名有拼写问题，不要改名）
+  - `internal/model/console/delay_queue_log.go` — 日志表模型
+
+  ## 第二步：回答定位问题
+
+  在动手之前，先回答：
+  1. 问题在入队层（Push）、扫描执行层（Handler）还是处理器层（ExecCmd 对应的 handler）？
+  2. ExecCmd 是否已在 `delay_queue/main.go` 注册（不是 internal/script/register.go）？
+  3. `delay_queue_log` 里的任务状态卡在哪里（1=待执行，2=执行中，3=完成，4=失败）？
+  4. ExecTime 和 DelayTime 是否都设置了？（ExecTime 优先级更高）
+
+  ## 第三步：修改约束
+
+  - 入队（Push）和执行（Handler）是两套接口，不要混淆
+  - 延迟队列处理器注册表（delay_queue/main.go）和脚本注册表（internal/script/register.go）是两个独立注册表
+  - 任务失败时必须写回状态和结果，不能让日志表卡在执行中
+  - `internal/delay_queue/mian.go` 的拼写错误是历史问题，改名前必须整体验证引用
+
+  ## 第四步：输出格式
+
+  按以下顺序组织输出：
+  1. 问题所在层级（入队/扫描/处理器）
+  2. 具体改动文件和内容
+  3. ExecCmd 注册和状态流转是否完整
+  4. 最小验证命令
