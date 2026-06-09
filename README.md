@@ -141,16 +141,6 @@ type DelayQueuePushParams struct {
 - `ExecTime` 优先级高于 `DelayTime`。
 - `internal/delay_queue/mian.go`（拼写有误）是现有引用名，**不能随意重命名**。
 
-### business-pipeline — 业务主链路
-
-**适用场景：** 新增/修改/排查推广 click / callback 主链路，涉及 `exec/promotion/`、`internal/main_progress/`、去重、扣量、回传状态更新和批量落库。
-
-关键约定：
-- `exec/promotion/` 是消费入口，只负责接消息、限流并发、组装数据；业务逻辑下沉到各子模块。
-- 链路分段：点击消费 → 业务线解析 → 点击上报 → 媒体回传 → 扣量策略，各段职责不能混写。
-- 回传结果需同步更新 `callback_state`、`callback_msg`、`callback_time`，仅写日志不够。
-- 新增媒体回传须走 `callback_click` 分发入口，不要在入口文件硬编码。
-
 ### resident-task — 常驻后台任务
 
 **适用场景：** 新增/修改/排查常驻后台任务，涉及 `resident/` 目录下的 Handler 实现、按机器分区注册、优雅退出。
